@@ -1,0 +1,39 @@
+cask "vcekron-chatgpt-1-2025-210" do
+  version "1.2025.210,1754404853"
+  sha256 "539a397088a829ab5918bc6ea435e07874e43c928841a8f12cbe3e670799f125"
+
+  url "https://persistent.oaistatic.com/sidekick/public/ChatGPT_Desktop_public_#{version.csv.first}_#{version.csv.second}.dmg",
+      verified: "persistent.oaistatic.com/sidekick/public/"
+  name "ChatGPT (frozen 1.2025.210)"
+  desc "OpenAI's official ChatGPT desktop app — version-locked for rollback/testing"
+  homepage "https://chatgpt.com/"
+
+  # This cask is intentionally pinned; skip livecheck to avoid nudging to latest.
+  livecheck do
+    skip "Pinned to a specific version for rollback"
+  end
+
+  auto_updates false
+  depends_on macos: ">= :sonoma"
+  depends_on arch: :arm64
+
+  app "ChatGPT.app"
+
+  uninstall quit: "com.openai.chat"
+
+  zap trash: [
+    "~/Library/Application Support/ChatGPT",
+    "~/Library/Application Support/com.openai.chat",
+    "~/Library/Caches/com.openai.chat",
+    "~/Library/HTTPStorages/com.openai.chat",
+    "~/Library/HTTPStorages/com.openai.chat.binarycookies",
+    "~/Library/Preferences/com.openai.chat.*.plist",
+    "~/Library/Preferences/com.openai.chat.plist",
+    "~/Library/Saved Application State/com.openai.chat.savedState",
+  ]
+
+  caveats <<~EOS
+    This is a version-locked build. For the latest official release:
+      brew install --cask chatgpt
+  EOS
+end
