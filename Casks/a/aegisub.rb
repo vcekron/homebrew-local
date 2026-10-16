@@ -1,6 +1,6 @@
 cask "aegisub" do
-  version "3.4.2"
-  sha256 "cbbfd3276e0414b540f6b1bc12a69abd6b8a96b0a452de3b08c290d553754ad3"
+  version "3.5.0"
+  sha256 "7d0701fbabcbcea1664b50e4f2726ea333721d1fbb313a3cc0c81e2a50b98cb5"
 
   url "https://github.com/TypesettingTools/Aegisub/releases/download/v#{version}/Aegisub-#{version}-arm64.dmg"
   name "Aegisub"
