@@ -1,10 +1,9 @@
-cask "vcekron-transmission-4-0-5" do
-  version "4.0.5"
-  sha256 "6a0e6838cb247ab1ed1390ef65368b82fc74b4e72cb0e291991f26c221436bc3"
+cask "vcekron-transmission-4-1-3" do
+  version "4.1.3"
+  sha256 "d622736c19990262f2ab12183e1acaa5b0dad5777ddc7db0a187c06e035a7e1a"
 
-  url "https://github.com/transmission/transmission/releases/download/#{version}/Transmission-#{version}.dmg",
-      verified: "github.com/transmission/transmission/"
-  name "Transmission (frozen 4.0.5)"
+  url "https://github.com/transmission/transmission/releases/download/#{version}/Transmission-#{version}.dmg"
+  name "Transmission (frozen 4.1.3)"
   desc "Open-source BitTorrent client — version-locked for rollback/testing"
   homepage "https://transmissionbt.com/"
 
@@ -13,8 +12,12 @@ cask "vcekron-transmission-4-0-5" do
   end
 
   auto_updates false
-  conflicts_with cask: "transmission@nightly"
-  depends_on macos: ">= :high_sierra"
+  conflicts_with cask: [
+    "transmission",
+    "transmission@beta",
+    "transmission@nightly",
+  ]
+  depends_on :macos
 
   app "Transmission.app"
 
@@ -31,7 +34,7 @@ cask "vcekron-transmission-4-0-5" do
   ]
 
   caveats <<~EOS
-    This is a version-locked build (Transmission 4.0.5).
+    This is a version-locked build (Transmission 4.1.3).
     For the latest official release from homebrew/cask:
       brew install --cask transmission
   EOS

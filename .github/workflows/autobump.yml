@@ -1,0 +1,56 @@
+name: autobump
+
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: autobump
+
+jobs:
+  autobump:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    env:
+      TAP: vcekron/local
+      HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      HOMEBREW_NO_INSTALL_FROM_API: 1
+    steps:
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up git
+        uses: Homebrew/actions/git-user-config@main
+
+      - name: Bump outdated casks
+        run: |
+          brew trust "$TAP"
+          tap_dir="$(brew --repository "$TAP")"
+          failed=()
+          while read -r cask version; do
+            echo "::group::$cask -> $version"
+            before="$(git -C "$tap_dir" rev-parse HEAD)"
+            if brew bump-cask-pr --write-only --commit --no-audit --version="$version" "$TAP/$cask" &&
+               brew audit --cask --strict --online "$TAP/$cask"; then
+              echo "Bumped $cask to $version"
+            else
+              git -C "$tap_dir" reset --hard "$before"
+              failed+=("$cask")
+            fi
+            echo "::endgroup::"
+          done < <(brew livecheck --tap "$TAP" --cask --newer-only --json |
+                   jq -r '.[] | select(.version.outdated) | "\(.cask) \(.version.latest)"')
+          if (( ${#failed[@]} )); then
+            echo "::error::Failed to bump: ${failed[*]}"
+            exit 1
+          fi
+
+      - name: Push commits
+        if: ${{ !cancelled() }}
+        uses: Homebrew/actions/git-try-push@main
+        with:
+          branch: main
