@@ -9,7 +9,7 @@ Personal Homebrew tap for two kinds of casks:
 
 | Cask | Kind | Notes |
 |------|------|-------|
-| `aegisub` | tracked | Unsigned upstream. |
+| `aegisub` | tracked | Notarized since 3.5.0 (arm64 build), so no quarantine removal; still disabled in `homebrew/cask`. |
 | `mumble` | tracked | Unsigned upstream. |
 | `stolendata-mpv` | tracked | Unsigned upstream. Trimmed to the Apple Silicon / macOS 14+ build. |
 | `syncplay` | tracked | Unsigned upstream. |
@@ -43,7 +43,8 @@ Each file is a copy of the upstream `homebrew/cask` file with these changes:
 
 - `disable!` removed.
 - `auto_updates true` removed, so `brew outdated` reports new versions.
-- A `postflight_steps` block that removes `com.apple.quarantine` from the installed app. **This bypasses Gatekeeper for that app**: macOS will not check its signature on first launch.
+- For apps that are not notarized, a `postflight_steps` block that removes `com.apple.quarantine` from the installed app. **This bypasses Gatekeeper for that app**: macOS will not check its signature on first launch. Check with `spctl -a -vv /Applications/<App>.app`; if an app becomes notarized upstream, drop the block.
+- If upstream changes its download file names, the bump fails and the cask's `url` needs a manual fix.
 
 The upstream `livecheck` block is kept unchanged; it is how new versions are found.
 
