@@ -30,7 +30,13 @@ jobs:
         run: |
           brew trust "$TAP"
           tap_dir="$(brew --repository "$TAP")"
+          livecheck_json="$RUNNER_TEMP/livecheck.json"
+          brew livecheck --tap "$TAP" --cask --newer-only --json > "$livecheck_json"
           failed=()
+          while read -r cask message; do
+            echo "::error::livecheck failed for $cask: $message"
+            failed+=("$cask")
+          done < <(jq -r '.[] | select(.status == "error") | "\(.cask) \(.messages | join("; "))"' "$livecheck_json")
           while read -r cask version; do
             echo "::group::$cask -> $version"
             before="$(git -C "$tap_dir" rev-parse HEAD)"
@@ -42,10 +48,9 @@ jobs:
               failed+=("$cask")
             fi
             echo "::endgroup::"
-          done < <(brew livecheck --tap "$TAP" --cask --newer-only --json |
-                   jq -r '.[] | select(.version.outdated) | "\(.cask) \(.version.latest)"')
+          done < <(jq -r '.[] | select(.version.outdated) | "\(.cask) \(.version.latest)"' "$livecheck_json")
           if (( ${#failed[@]} )); then
-            echo "::error::Failed to bump: ${failed[*]}"
+            echo "::error::Failed: ${failed[*]}"
             exit 1
           fi
 

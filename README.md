@@ -10,8 +10,8 @@ Personal Homebrew tap for two kinds of casks:
 | Cask | Kind | Notes |
 |------|------|-------|
 | `aegisub` | tracked | Notarized since 3.5.0 (arm64 build), so no quarantine removal; still disabled in `homebrew/cask`. |
+| `mpv-app` | tracked | Own cask (not a `homebrew/cask` copy): official ad-hoc-signed builds from [mpv-player/mpv releases](https://github.com/mpv-player/mpv/releases), replacing `stolendata-mpv`. Named `mpv-app` because the `mpv` token clashes with the `homebrew/core` formula. See below. |
 | `mumble` | tracked | Unsigned upstream. |
-| `stolendata-mpv` | tracked | Unsigned upstream. Trimmed to the Apple Silicon / macOS 14+ build. |
 | `syncplay` | tracked | Unsigned upstream. |
 | `xld` | tracked | Unsigned upstream. |
 | `vcekron-transmission-4-1-3` | frozen | Transmission 4.0.6 shipped a tracker-announce bug and was banned by many private trackers ([transmission#7083](https://github.com/transmission/transmission/issues/7083)). Pinned so a future bad release cannot arrive via `brew upgrade`. |
@@ -48,7 +48,9 @@ Each file is a copy of the upstream `homebrew/cask` file with these changes:
 
 The upstream `livecheck` block is kept unchanged; it is how new versions are found.
 
-**Automatic updates** (`.github/workflows/autobump.yml`) run daily at 05:17 UTC and on demand (Actions → autobump → Run workflow). For each cask that livecheck reports as outdated, the workflow runs `brew bump-cask-pr --write-only --commit`, audits the result with `brew audit --cask --strict --online`, and pushes passing bumps straight to `main`. A cask that fails to bump or audit is skipped and the run is marked failed, which triggers a GitHub email.
+**Automatic updates** (`.github/workflows/autobump.yml`) run daily at 05:17 UTC and on demand (Actions → autobump → Run workflow). For each cask that livecheck reports as outdated, the workflow runs `brew bump-cask-pr --write-only --commit`, audits the result with `brew audit --cask --strict --online`, and pushes passing bumps straight to `main`. A cask that fails to bump or audit is skipped and the run is marked failed, which triggers a GitHub email. A cask whose livecheck errors (e.g. upstream site changed) also fails the run; `brew livecheck` itself exits 0 in that case, so the workflow reads the `"status": "error"` entries from its JSON.
+
+**`mpv-app` build selection.** mpv publishes one zip per minimum macOS version (`mpv-v<ver>-macos-<NN>-arm.zip`). The cask version is `"<ver>,<NN>"`; its livecheck picks the highest `NN` that is ≤ `local_macos_major` (currently `27`), and `depends_on macos:` is derived from `NN`. A release that moves to a newer `NN` bumps both parts automatically. After upgrading macOS, raise `local_macos_major` to get builds for the new version; if it is left alone, older builds keep working. If no build ≤ `local_macos_major` exists, livecheck errors and the run fails.
 
 The new `sha256` is whatever upstream serves at bump time; there is no human review.
 
